@@ -96,12 +96,49 @@ namespace _2022_11F_Osszeg_Backtrack
 
 			for (int i = 0; i < 2; i++) // ha 1,0 sorrendben próbálgatunk (i--), akkor nem is kell a visszaalakítás!
 			{
-				akt_mo[eleje] = i;
+				akt_mo[eleje] = i; // belelépéskor
 				Kiválogatás(lista, osszeg - i * lista[eleje], eleje + 1);
-				akt_mo[eleje] = 0;
+				akt_mo[eleje] = 0; // visszalépéskor
 			}
 		}
 
+		static int[] best_akt_mo; // a választás, amit éppen nézünk, amivel épp dolgozunk
+		static int[] best_best_mo; // az eddigi legjobb, amivel majd összehasonlítjuk
+		static bool defined;
+		static bool Jobb(int[] egyik, int[] másik) => egyik.Sum() < másik.Sum();
+		private static void Legjobb(List<int> lista, int osszeg, int eleje = 0)
+		{
+			bool siker = osszeg == 0;
+			bool levél = eleje == lista.Count;
+			bool reménytelen = osszeg < 0 || (defined && Jobb(best_best_mo, best_akt_mo));
+
+			// kilépési feltételek
+			if (siker)
+			{
+				if (!defined || Jobb(best_akt_mo, best_best_mo))
+				{
+					best_best_mo = best_akt_mo.ToArray();
+				}
+				defined = true;
+				return;
+			}
+
+			if (reménytelen || levél)
+			{
+				return;
+			}
+
+			// visszavezetés részproblémára
+
+			// végigpróbálgatás
+
+			for (int i = 0; i < 2; i++) // ha 1,0 sorrendben próbálgatunk (i--), akkor nem is kell a visszaalakítás!
+			{
+				best_akt_mo[eleje] = i; // belelépéskor
+				Legjobb(lista, osszeg - i * lista[eleje], eleje + 1);
+				best_akt_mo[eleje] = 0; // visszalépéskor
+			}
+		}
 
 		private static bool Vanilyen_quick(List<int> lista, int osszeg, int eleje = 0) => osszeg == 0 ? true : ((osszeg < 0 || eleje == lista.Count) ? false : Vanilyen_quick(lista, osszeg, eleje + 1) || Vanilyen_quick(lista, osszeg - lista[eleje], eleje + 1));
 
@@ -190,8 +227,26 @@ namespace _2022_11F_Osszeg_Backtrack
 				Console.WriteLine();
 			}
 			Console.WriteLine("--------------------------------------");
-			Console.ReadKey();
 
+
+			Console.WriteLine("--------------------------------------");
+
+			Console.WriteLine("Mi az adott pozitív egész számokból álló listának a(egy) legkisebb adott összegű részhalmaza?");
+			Console.WriteLine($"{string.Join(",", lista)}");
+
+			for (int o = 0; o < 15; o++)
+			{
+				best_akt_mo = new int[lista.Count];
+				//best_best_mo = new int[lista.Count];
+				defined = false;
+				Legjobb(lista, o);
+				Console.WriteLine($"{string.Join(",", best_best_mo)}");
+				Console.WriteLine();
+			}
+
+			Console.WriteLine("--------------------------------------");
+
+			Console.ReadKey();
 
 		}
 	}
